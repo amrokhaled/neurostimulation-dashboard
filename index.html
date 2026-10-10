@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Closed-Loop Neurostimulation System — Graduation Project</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ===================================================================== -->
+  <!-- 1. WELCOME SCREEN (MONOCHROME DOT-MATRIX BRAIN + COLOR ON HOVER/TRAIL) -->
+  <!-- ===================================================================== -->
+  <div id="welcomeScreen">
+    <canvas id="neuralCanvas"></canvas>
+
+    <!-- Floating Detail Tooltip when hovering a Brain Callout or Lobe -->
+    <div id="nodePopup">
+      <div class="np-tag" id="npTag">EPIC A</div>
+      <div class="np-title" id="npTitle">Node Title</div>
+      <div class="np-desc" id="npDesc">Node description</div>
+      <div class="np-stat" id="npStat">Key Metric</div>
+    </div>
+
+    <div class="welcome-grid">
+      <!-- Top Minimal Bar -->
+      <header class="welcome-topbar">
+        <div class="brand-mark">
+          <span class="brand-dot"></span>
+          <div class="brand-text">Graduation Project <span>// 2026</span></div>
+        </div>
+        <div class="top-supervisor">
+          Supervised by <strong>Dr. Azhar Hamdy</strong>
+        </div>
+        <div class="top-meta">Zagazig University • Electronics &amp; Comm.</div>
+      </header>
+
+      <!-- Left: Project Overview (Monochrome until hovered) -->
+      <aside class="welcome-left hover-color-card">
+        <div class="eyebrow-tag"><span class="status-dot"></span>Project Overview</div>
+        <h3>Brain-Responsive Seizure Detection &amp; Safe Control</h3>
+        <p>
+          Instead of blind continuous electrical pulses, our closed-loop system monitors 22 EEG channels, detects epileptic seizures in 0.61 ms using an INT8 Spiking Neural Network, and verifies stimulation through an independent hardware safety shield.
+        </p>
+        <div class="left-metrics">
+          <div class="lm-item">
+            <span class="lm-label">Clinical Event Recall</span>
+            <span class="lm-val">46 / 46 (100%)</span>
+          </div>
+          <div class="lm-item">
+            <span class="lm-label">INT8 Chip Footprint</span>
+            <span class="lm-val">28,032 Bytes (27.4 KB)</span>
+          </div>
+          <div class="lm-item">
+            <span class="lm-label">Inference Latency</span>
+            <span class="lm-val">0.61 ms</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center: Clean Editorial Title above the Stippled Dot-Matrix Brain -->
+      <div class="welcome-center">
+        <div class="center-header">
+          <h1 class="project-main-title">
+            Adaptive Closed-Loop<br/>Neurostimulation
+          </h1>
+          <p class="project-subtitle">
+            Move cursor across the brain matrix to ignite neural pathways
+          </p>
+        </div>
+      </div>
+
+      <!-- Right: Team Roster (Leader + Members, Amr Khaled #2) -->
+      <aside class="welcome-right hover-color-card">
+        <div class="eyebrow-tag">Project Team</div>
+        <ul class="team-roster">
+          <li class="roster-member leader">
+            <span class="leader-pill">Team Leader</span>
+            <span>Mohamed Ayman</span>
+          </li>
+          <li class="roster-member"><span>Amr Khaled</span><span class="roster-tick"></span></li>
+          <li class="roster-member"><span>Esraa Amer</span><span class="roster-tick"></span></li>
+          <li class="roster-member"><span>Nada Mohamed</span><span class="roster-tick"></span></li>
+          <li class="roster-member"><span>Noha Ahmed</span><span class="roster-tick"></span></li>
+          <li class="roster-member"><span>Lina Adel</span><span class="roster-tick"></span></li>
+          <li class="roster-member"><span>Basma Ali</span><span class="roster-tick"></span></li>
+        </ul>
+
+        <!-- Decorative Barcode Bars (from Reference Style) -->
+        <div class="deco-bars">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </aside>
+
+      <!-- Bottom: Corner Dot Matrix + Explore Trigger -->
+      <div class="welcome-bottom">
+        <div class="corner-dots">
+          <i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <button class="explore-more-btn" onclick="zoomIntoDashboard()">
+          <span>Explore System Dashboard</span>
+          <div class="explore-circle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 10l5 5 5-5M7 5l5 5 5-5"/>
+            </svg>
+          </div>
+        </button>
+
+        <div class="bottom-coord">SYS // CORTEX-M7 • INT8</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 2. DASHBOARD (MONOCHROME BASE + COLOR IGNITION ON HOVER / INTERACTION) -->
+  <!-- ===================================================================== -->
+  <div id="dashboardWrapper">
+    <header class="dash-header">
+      <div class="dash-header-inner">
+        <div class="brand-mark" style="cursor:pointer;" onclick="zoomBackToWelcome()">
+          <span class="brand-dot"></span>
+          <div class="brand-text">Closed-Loop Neurostimulation <span>// Epics A &amp; B</span></div>
+        </div>
+
+        <nav class="dash-nav-links">
+          <button class="dash-nav-btn active" onclick="openDashTab('tab-story', this)">01. System Loop</button>
+          <button class="dash-nav-btn" onclick="openDashTab('tab-epica', this)">02. Epic A — Signal</button>
+          <button class="dash-nav-btn" onclick="openDashTab('tab-epicb', this)">03. Epic B — SNN AI</button>
+          <button class="dash-nav-btn" onclick="openDashTab('tab-sim', this)">04. Hardware Lab</button>
+          <button class="dash-nav-btn" onclick="openDashTab('tab-figs', this)">05. Report Figures</button>
+        </nav>
+
+        <button class="return-btn" onclick="zoomBackToWelcome()">← Brain Matrix</button>
+      </div>
+    </header>
+
+    <main class="dash-main">
+
+      <!-- ================================================================= -->
+      <!-- TAB 01: SYSTEM OVERVIEW + EEG SEIZURE SHOWDOWN                    -->
+      <!-- ================================================================= -->
+      <section id="tab-story" class="dash-tab-view active">
+        <div class="sec-hero">
+          <div class="sec-watermark">01</div>
+          <div class="sec-eyebrow">Closed-Loop Architecture</div>
+          <h2>How Our Adaptive Neurostimulation System Works</h2>
+          <p>Four integrated stages transform raw 22-channel EEG into a safe, real-time closed-loop therapy decision in 0.61 milliseconds.</p>
+        </div>
+
+        <div class="hairline-grid-4">
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">Stage 01 • Epic A</span>
+            <h3>EEG Filtering &amp; Windowing</h3>
+            <p>22 bipolar channels, 0.5–50 Hz bandpass (60 Hz US powerline hum automatically attenuated), sliced into 2.0s windows with 50% overlap.</p>
+          </div>
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">Stage 02 • Epic A</span>
+            <h3>7-Feature Extraction</h3>
+            <p>5 Welch PSD frequency bands + Line Length + Variance per channel — emitting a compact 154-feature vector every 1.0 second.</p>
+          </div>
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">Stage 03 • Epic B</span>
+            <h3>LIF Spiking Neural Network</h3>
+            <p>154→128→64→2 spiking layers over T=25 steps. Symmetric INT8 quantized to 27.4 KB with 100% clinical seizure event recall.</p>
+          </div>
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">Stage 04 • Control &amp; Safety</span>
+            <h3>Temporal Safety Debouncer</h3>
+            <p>Requires ≥3 positive detections within 5 seconds before waking the RL controller and independent hardware charge-limit shield.</p>
+          </div>
+        </div>
+
+        <!-- LIVE EEG SEIZURE SHOWDOWN -->
+        <div class="showdown-block hover-color-card">
+          <div class="showdown-header">
+            <div>
+              <span class="cell-step">Real-Time ICU Monitor Simulation • Hover Canvas to Ignite Color</span>
+              <h3>Untreated Patient Brain &nbsp;vs.&nbsp; Our Closed-Loop Neurostimulation</h3>
+            </div>
+            <div class="btn-strip" style="margin:0;">
+              <button class="outline-btn active" id="seizureTriggerBtn" onclick="triggerShowdown()">⚡ Live Seizure Suppression Loop</button>
+              <button class="outline-btn" id="calmBaselineBtn" onclick="resetShowdown()">Calm Baseline Only</button>
+            </div>
+          </div>
+
+          <div class="showdown-dual">
+            <div class="showdown-pane danger-pane">
+              <div class="showdown-label">
+                <span class="sd-tag">● WITHOUT SYSTEM (UNCONTROLLED SEIZURE)</span>
+                <span class="sd-status" id="sdStatusLeft">ICTAL DISCHARGE SPREADING</span>
+              </div>
+              <canvas id="eegLeft" class="eeg-canvas" height="235"></canvas>
+              <div class="sd-footer">Focal seizure erupts in the temporal lobe and cascades across all cortical channels continuously without intervention.</div>
+            </div>
+
+            <div class="vs-pillar">
+              <div class="vs-line"></div>
+              <div class="vs-badge">VS</div>
+              <div class="vs-line"></div>
+            </div>
+
+            <div class="showdown-pane safe-pane">
+              <div class="showdown-label">
+                <span class="sd-tag">● WITH OUR CLOSED-LOOP SYSTEM</span>
+                <span class="sd-status" id="sdStatusRight">MONITORING...</span>
+              </div>
+              <canvas id="eegRight" class="eeg-canvas" height="235"></canvas>
+              <div class="sd-footer">SNN catches onset in 0.61 ms → Debouncer confirms 3/5 hits → Biphasic counter-pulse quenches the seizure wave.</div>
+            </div>
+          </div>
+
+          <div class="cl-timeline" id="clTimeline">
+            <div class="cl-step" id="cls1">
+              <div class="cl-step-top"><span>01. SNN Detects Onset</span><small>0.61 ms</small></div>
+              <div class="cl-prog"><div class="cl-prog-bar"></div></div>
+            </div>
+            <div class="cl-arrow">→</div>
+            <div class="cl-step" id="cls2">
+              <div class="cl-step-top"><span>02. Debouncer: 3 / 5 Hits</span><small>≤ 5.0 s Window</small></div>
+              <div class="cl-prog"><div class="cl-prog-bar"></div></div>
+            </div>
+            <div class="cl-arrow">→</div>
+            <div class="cl-step" id="cls3">
+              <div class="cl-step-top"><span>03. Safety Shield Check</span><small>Charge Verified</small></div>
+              <div class="cl-prog"><div class="cl-prog-bar"></div></div>
+            </div>
+            <div class="cl-arrow">→</div>
+            <div class="cl-step" id="cls4">
+              <div class="cl-step-top"><span>04. Counter-Pulse Fired</span><small>Seizure Quenched ✓</small></div>
+              <div class="cl-prog"><div class="cl-prog-bar"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hairline-grid-3">
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">Clinical Event Sensitivity</span>
+            <div class="big-stat">46 / 46 <span>100% Recall</span></div>
+            <p>Detected all 46 unseen clinical seizure events across validation and test sets, beating Random Forest (45/46 = 97.83%).</p>
+          </div>
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">INT8 Quantized Memory</span>
+            <div class="big-stat">27.4 <span>KB (5.3% SRAM)</span></div>
+            <p>4× compression (28,032 bytes) via symmetric INT8 with virtually zero accuracy drop (ΔF1 = −0.000036).</p>
+          </div>
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">Microcontroller Speed</span>
+            <div class="big-stat">0.61 <span>ms Latency</span></div>
+            <p>Over 80× faster than our 50 ms real-time hardware deadline on the ARM Cortex-M7 processor.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 02: EPIC A + INTERACTIVE FILTER & WINDOWING VISUALIZER        -->
+      <!-- ================================================================= -->
+      <section id="tab-epica" class="dash-tab-view">
+        <div class="sec-hero">
+          <div class="sec-watermark">02</div>
+          <div class="sec-eyebrow">Epic A Report Breakdown</div>
+          <h2>Reproducible EEG Data &amp; Signal Pipeline</h2>
+          <p>Every decision in Epic A was engineered around two strict requirements: preventing patient data leakage and minimizing ARM Cortex-M7 computation.</p>
+        </div>
+
+        <div class="showdown-block hover-color-card">
+          <div class="showdown-header">
+            <div>
+              <span class="cell-step">Interactive Signal Pipeline • Bandpass Filtering &amp; 50% Overlapping Windows</span>
+              <h3>Live 0.5–50 Hz Filter (60 Hz Hum Removal) &amp; 2.0s Sliding Window</h3>
+            </div>
+            <div class="btn-strip" style="margin:0;">
+              <button class="outline-btn" id="epicaRawBtn" onclick="setEpicAMode('raw')">Raw Boston EEG (With 60 Hz Hum)</button>
+              <button class="outline-btn active" id="epicaCleanBtn" onclick="setEpicAMode('clean')">Filtered 0.5–50 Hz (No Notch Needed)</button>
+            </div>
+          </div>
+          <canvas id="epicaPipelineCanvas" class="eeg-canvas" height="220"></canvas>
+        </div>
+
+        <div class="hairline-grid-2">
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">01 / Zero Leakage Split</span>
+            <h3>Strict Patient-Wise Split (16 / 4 / 4)</h3>
+            <p>Random window splitting causes severe leakage — the model memorizes patient background. We partitioned all 24 CHB-MIT patients strictly by person, protected by <code>check_split_leakage.py</code>:</p>
+            <div class="bar-list">
+              <div>
+                <div class="bar-meta"><span>Training — 16 Patients (~143 Seizures)</span><strong>67%</strong></div>
+                <div class="bar-rail"><div class="bar-fill" style="width:67%"></div></div>
+              </div>
+              <div>
+                <div class="bar-meta"><span>Validation — 4 Patients (chb11, 12, 19, 20)</span><strong>16.5%</strong></div>
+                <div class="bar-rail"><div class="bar-fill" style="width:16.5%"></div></div>
+              </div>
+              <div>
+                <div class="bar-meta"><span>Test — 4 Unseen Patients (chb21, 22, 23, 24)</span><strong>16.5%</strong></div>
+                <div class="bar-rail"><div class="bar-fill" style="width:16.5%"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">02 / Hardware-Aware Filtering</span>
+            <h3>Why 0.5–50 Hz Eliminated the 60 Hz Notch Filter</h3>
+            <p style="margin-bottom:1rem;">The CHB-MIT dataset was recorded in Boston, USA — the raw EEG has a sharp <strong>60 Hz</strong> powerline spike.</p>
+            <p style="margin-bottom:1rem;">By cutting off at <strong>50.0 Hz</strong>, the mains hum is attenuated automatically — no dedicated 60 Hz Notch filter needed, saving valuable MCU cycles for embedded inference.</p>
+            <p>We also kept raw amplitude intact (no Z-score normalization) so high-voltage seizure spikes are never artificially flattened before feature extraction.</p>
+          </div>
+        </div>
+
+        <div class="hairline-grid-2">
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">03 / SzCORE Windowing Policy</span>
+            <h3>2.0-Second Windows &amp; Overlap Rules</h3>
+            <p style="margin-bottom:1rem;">Continuous EEG → <strong>2.0s windows</strong>, <strong>50% overlap</strong> → one decision per second.</p>
+            <p><strong>Training (SzCORE &gt;50%):</strong> A window is Class 1 only if &gt;1.0s overlaps a clinical seizure annotation.<br/>
+            <strong>Evaluation (OVLP &gt;0%):</strong> Any overlap counts — early onset detections are rewarded.</p>
+          </div>
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">04 / Feature Extraction</span>
+            <h3>22 Channels × 7 Features = 154 Inputs</h3>
+            <p style="margin-bottom:1rem;">7 lightweight features extracted per channel:</p>
+            <p><strong>5 Welch PSD bands:</strong> Delta (0.5–4), Theta (4–8), Alpha (8–13), Beta (13–30), Gamma (30–50 Hz).<br/>
+            <strong>2 Time-Domain:</strong> Line Length (sharpness detector) + Variance (Hjorth Activity).</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 03: EPIC B + ANIMATED SNN FLOW + SRAM PRESSURE METER          -->
+      <!-- ================================================================= -->
+      <section id="tab-epicb" class="dash-tab-view">
+        <div class="sec-hero">
+          <div class="sec-watermark">03</div>
+          <div class="sec-eyebrow">Epic B Report Breakdown</div>
+          <h2>Spiking Neural Network — Architecture &amp; Silicon Reality</h2>
+          <p>LIF SNN trained on 349:1 imbalance, 100% clinical event recall, and compressed to 27.4 KB for implant-grade deployment.</p>
+        </div>
+
+        <div class="hairline-grid-2">
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">Core Discovery — Window vs. Clinical Event Level</span>
+            <h3>Why 23% Window Recall = 100% Clinical Recall</h3>
+            <p style="margin-bottom:1rem;">A seizure lasts 20–60 seconds — that is 20–60 consecutive 2s windows. Missing some windows while catching any early window is enough to trigger therapy. The clinical metric that matters is: <em>did we detect this seizure event at all?</em></p>
+            <div class="bar-list">
+              <div>
+                <div class="bar-meta"><span>SNN Clinical Event Recall (46 / 46)</span><strong>100.00%</strong></div>
+                <div class="bar-rail"><div class="bar-fill" style="width:100%"></div></div>
+              </div>
+              <div>
+                <div class="bar-meta"><span>Random Forest Event Recall (45 / 46)</span><strong>97.83%</strong></div>
+                <div class="bar-rail"><div class="bar-fill" style="width:97.8%"></div></div>
+              </div>
+              <div>
+                <div class="bar-meta"><span>SNN Isolated Window Recall (misleading metric)</span><strong>23%</strong></div>
+                <div class="bar-rail"><div class="bar-fill" style="width:23%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">Architecture &amp; Training Strategy</span>
+            <h3>154 → 128 → 64 → 2 LIF Network</h3>
+            <p style="margin-bottom:1rem;"><strong>Rate Spike Encoding:</strong> Features scaled to [0,1] via frozen training-set Min-Max bounds, then converted to binary spikes over T = 25 simulation steps.</p>
+            <p style="margin-bottom:1rem;"><strong>LIF Neurons (β = 0.9):</strong> Membrane potential leaks, accumulates synaptic input, fires when threshold exceeded. Spike-count readout over 25 steps.</p>
+            <p><strong>Defeating 349:1 Imbalance:</strong> Undersampling rejected to preserve interictal diversity. Weighted BCE Loss outperformed Focal Loss. Early stopping locked best checkpoint.</p>
+          </div>
+        </div>
+
+        <!-- ANIMATED SNN DATA FLOW -->
+        <div class="snn-flow-block hover-color-card">
+          <div class="showdown-header">
+            <div>
+              <span class="cell-step">Step-by-Step Visual Pipeline • Move Cursor Over Stages to Highlight</span>
+              <h3>How Our Spiking Neural Network Thinks (Live Simulation)</h3>
+            </div>
+            <div class="btn-strip" style="margin:0;">
+              <button class="outline-btn" id="snnModeCalm" onclick="setSnnMode('calm')">Normal EEG Input (Class 0)</button>
+              <button class="outline-btn active" id="snnModeSeizure" onclick="setSnnMode('seizure')">Active Seizure Input (Class 1)</button>
+            </div>
+          </div>
+          <canvas id="snnFlowCanvas" height="330"></canvas>
+          <div class="snn-flow-legend">
+            <span><i class="leg-dot" style="background:#00e5ff"></i>Stage 1: 154 EEG Features</span>
+            <span><i class="leg-dot" style="background:#fbbf24"></i>Stage 2: T=25 Rate Spike Train</span>
+            <span><i class="leg-dot" style="background:#7b5cff"></i>Stage 3: LIF Synapses &amp; Membrane Potential V(t)</span>
+            <span><i class="leg-dot" style="background:#d62976"></i>Stage 4: Spike-Count Decision</span>
+          </div>
+        </div>
+
+        <!-- SRAM PRESSURE METER -->
+        <div class="sram-pressure-block hover-color-card">
+          <div class="showdown-header">
+            <div>
+              <span class="cell-step">Silicon Reality — ARM Cortex-M7 On-Chip SRAM (512 KB)</span>
+              <h3>Random Forest Overflows the Chip. INT8 SNN Uses 5.3%.</h3>
+            </div>
+            <div class="btn-strip" style="margin:0;">
+              <button class="outline-btn" id="sramBtnRF" onclick="selectSram('rf')">Random Forest</button>
+              <button class="outline-btn" id="sramBtnFP32" onclick="selectSram('fp32')">SNN Float32</button>
+              <button class="outline-btn active" id="sramBtnINT8" onclick="selectSram('int8')">SNN INT8 ✓</button>
+            </div>
+          </div>
+
+          <div class="sram-meter-wrap">
+            <div class="sram-chip-label" id="sramChipLabel">SNN INT8 — 27.4 KB / 512 KB SRAM (5.3%)</div>
+            <div class="sram-bar-track">
+              <div class="sram-bar-fill" id="sramBarFill" style="width:5.3%"></div>
+              <div class="sram-bar-overflow-glow" id="sramOverflowGlow"></div>
+            </div>
+            <div class="sram-bar-ticks">
+              <span>0 KB</span><span>128 KB</span><span>256 KB</span><span>384 KB</span><span>512 KB MAX SRAM</span>
+            </div>
+            <div class="sram-verdict" id="sramVerdict">
+              <strong style="color:#00e5ff">✓ DEPLOYABLE</strong> — Leaves 484 KB free for RL controller, safety logic &amp; runtime stack.
+            </div>
+          </div>
+
+          <div class="hairline-grid-3" style="margin-top:0;">
+            <div class="h-cell hover-color-card" id="sramMetricMem">
+              <span class="cell-step">Memory Footprint</span>
+              <div class="big-stat" id="sramMemVal">27.4 <span>KB</span></div>
+              <p id="sramMemDesc">28,032 bytes — 4× compressed from Float32 via symmetric INT8 (±127 range).</p>
+            </div>
+            <div class="h-cell hover-color-card" id="sramMetricLat">
+              <span class="cell-step">Inference Latency</span>
+              <div class="big-stat" id="sramLatVal">0.61 <span>ms</span></div>
+              <p id="sramLatDesc">80× faster than 50 ms hard real-time budget. Non-blocking.</p>
+            </div>
+            <div class="h-cell hover-color-card" id="sramMetricRec">
+              <span class="cell-step">Clinical Seizure Recall</span>
+              <div class="big-stat" id="sramRecVal">100 <span>% (46/46)</span></div>
+              <p id="sramRecDesc">Zero missed seizure events. ΔF1 = −0.000036 vs Float32.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 04: LIVE LAB — EEG SIM + DEBOUNCER + ELECTRODE MAP            -->
+      <!-- ================================================================= -->
+      <section id="tab-sim" class="dash-tab-view">
+        <div class="sec-hero">
+          <div class="sec-watermark">04</div>
+          <div class="sec-eyebrow">Interactive Hardware Lab</div>
+          <h2>Spike Encoding · Temporal Debouncer · Electrode Fault Stress Test</h2>
+          <p>Interact directly with the signal generator, the 5s false-alarm blocker, and the 22-channel scalp map to reproduce Epic B Section 9 robustness findings.</p>
+        </div>
+
+        <div class="hairline-grid-2">
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">01 / Analog Brainwave → 25 Digital Spikes (Rate Encoding)</span>
+            <h3>How Our SNN Converts Waves Into Binary Spikes (0 &amp; 1)</h3>
+            <div class="btn-strip">
+              <button class="outline-btn active" id="simCalmBtn" onclick="changeSimMode('calm')">Normal EEG (Few Spikes)</button>
+              <button class="outline-btn" id="simHumBtn" onclick="changeSimMode('hum')">60 Hz Hum Noise</button>
+              <button class="outline-btn" id="simSeizBtn" onclick="changeSimMode('seizure')">Active Seizure (Dense Spikes)</button>
+            </div>
+            <canvas id="liveSimCanvas" class="eeg-canvas" height="230"></canvas>
+          </div>
+
+          <div class="h-cell hover-color-card">
+            <span class="cell-step">02 / 5-Second False-Alarm Blocker (Temporal Debouncer)</span>
+            <h3>Why 1 Glitch Doesn't Shock the Patient (Needs ≥3 / 5 Secs)</h3>
+            <div class="btn-strip">
+              <button class="outline-btn" id="dbBtnCalm" onclick="runDebounceTest('calm')">1. Normal Brain (0/5)</button>
+              <button class="outline-btn" id="dbBtnFalse" onclick="runDebounceTest('false_alarm')">2. Eye Blink Glitch (1/5 Blocked)</button>
+              <button class="outline-btn active" id="dbBtnSeiz" onclick="runDebounceTest('seizure')">3. Real Seizure (4/5 Fires ⚡)</button>
+            </div>
+
+            <div class="debounce-grid" id="debounceGrid"></div>
+
+            <!-- Threshold Progress Meter (Needs 3 of 5) -->
+            <div class="bar-meta" style="margin-top:0.9rem;">
+              <span>Seizure Detections in Last 5 Seconds (Threshold = 3)</span>
+              <strong id="debounceCountBadge">0 / 3 Required</strong>
+            </div>
+            <div class="bar-rail" style="height:6px; margin-bottom:1.1rem;">
+              <div class="bar-fill" id="debounceProgressBar" style="width:0%; height:6px;"></div>
+            </div>
+
+            <div class="fault-alert-box" id="debounceStatusText">
+              Click any scenario above to see how the 5-second counter blocks false alarms.
+            </div>
+          </div>
+        </div>
+
+        <!-- ELECTRODE FAULT MAP -->
+        <div class="electrode-lab-block hover-color-card">
+          <div class="showdown-header">
+            <div>
+              <span class="cell-step">03 / Click Any Electrode to Disconnect It — Epic B Section 9 Stress Test</span>
+              <h3>22-Channel Scalp Map &amp; Real-Time Sensitivity Impact</h3>
+            </div>
+            <div class="btn-strip" style="margin:0;">
+              <button class="outline-btn active" onclick="setElectrodePreset('healthy')">All 22 Active</button>
+              <button class="outline-btn" onclick="setElectrodePreset('drop2')">Drop 2</button>
+              <button class="outline-btn" onclick="setElectrodePreset('drop6')">Severe: Drop 6</button>
+              <button class="outline-btn" id="awgnToggleBtn" onclick="toggleAwgnNoise()">AWGN: OFF</button>
+            </div>
+          </div>
+
+          <div class="electrode-lab-grid">
+            <div class="electrode-canvas-wrap">
+              <canvas id="electrodeCanvas" width="390" height="330" style="cursor:pointer; max-width:100%;"></canvas>
+              <p class="elec-hint">Hover to highlight · Click any electrode node to disconnect/reconnect</p>
+            </div>
+
+            <div class="electrode-telemetry">
+              <div class="tele-row">
+                <div class="tele-label">Active Channels</div>
+                <div class="tele-value" id="elecCountLabel">22 / 22</div>
+              </div>
+              <div class="bar-rail" style="margin-bottom:1.5rem;"><div class="bar-fill" id="elecCountBar" style="width:100%"></div></div>
+
+              <div class="tele-row">
+                <div class="tele-label">SNN Seizure Recall</div>
+                <div class="tele-value" id="elecRecallLabel">100.0%</div>
+              </div>
+              <div class="bar-rail" style="margin-bottom:1.5rem;"><div class="bar-fill" id="elecRecallBar" style="width:100%"></div></div>
+
+              <div class="tele-row">
+                <div class="tele-label">RF Baseline Recall</div>
+                <div class="tele-value" id="elecRfLabel">97.8%</div>
+              </div>
+              <div class="bar-rail" style="margin-bottom:1.5rem;"><div class="bar-fill" id="elecRfBar" style="width:97.8%"></div></div>
+
+              <div class="fault-alert-box" id="elecFaultBanner">
+                <strong>NOMINAL:</strong> All 22 channels active. 100% clinical event recall (46/46).
+              </div>
+
+              <div class="tele-why-box">
+                <span class="cell-step">Why This Happens</span>
+                <p>The LIF SNN integrates distributed synaptic current across all 154 inputs (22 ch × 7 features). When channels are missing, the total excitatory drive drops below the membrane firing threshold — fewer neurons spike, and the output sum falls short of the seizure decision boundary. This motivates the hardware lead-off detection system in Epic E.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 05: FIGURES                                                    -->
+      <!-- ================================================================= -->
+      <section id="tab-figs" class="dash-tab-view">
+        <div class="sec-hero">
+          <div class="sec-watermark">05</div>
+          <div class="sec-eyebrow">Verified Plots</div>
+          <h2>Official Figures from Epic A &amp; Epic B Reports</h2>
+          <p>Click any figure to inspect it full-screen.</p>
+        </div>
+        <div class="fig-grid" id="figGrid"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Figure Modal -->
+  <div class="modal-overlay" id="figModal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <span id="modalTitle" style="font-family:var(--font-display); font-size:0.75rem; letter-spacing:0.18em; text-transform:uppercase;"></span>
+        <button class="outline-btn" onclick="closeModal()">Close ✕</button>
+      </div>
+      <img id="modalImg" src="" alt="Report Figure" />
+      <p id="modalDesc" style="color:var(--text-muted); font-size:0.84rem; margin-top:1rem; font-weight:300;"></p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
