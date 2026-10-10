@@ -253,10 +253,11 @@ function drawWelcomeNeuralScene() {
   const h = canvas.height;
   ctx.clearRect(0, 0, w, h);
 
+  const isMobile = w <= 900;
   const cx = w / 2;
-  const cy = h / 2 + 24;
-  const rx = Math.min(w * 0.22, 265);
-  const ry = Math.min(h * 0.29, 235);
+  const cy = isMobile ? 265 : h / 2 + 24;
+  const rx = isMobile ? Math.min(w * 0.36, 138) : Math.min(w * 0.22, 265);
+  const ry = isMobile ? 105 : Math.min(h * 0.29, 235);
 
   // Subtle 3D tilt following cursor
   const autoYaw = Math.sin(state.tick * 0.01) * 0.12;
@@ -494,6 +495,7 @@ function drawBrainAnd3ChEEG(canvas, panelType, phaseState, tick, debounceHits, i
   const ctx = canvas.getContext('2d');
   const w = (canvas.width = canvas.clientWidth || 520);
   const h = (canvas.height = 235);
+  const isCompact = w < 460;
   ctx.clearRect(0, 0, w, h);
 
   // Subtle Grid
@@ -507,7 +509,7 @@ function drawBrainAnd3ChEEG(canvas, panelType, phaseState, tick, debounceHits, i
   const isStim = phaseState === 'stim';
   const isQuenched = phaseState === 'quenched';
 
-  // Monochrome Silver/White by default; Vibrant Color when hovered!
+  // Monochrome Silver/White by default; Vibrant Color when hovered or on mobile!
   const coloredTone = isSeizing ? '#d62976' : isStim ? '#fbbf24' : '#00e5ff';
   const monoTone = isSeizing ? '#ffffff' : isStim ? '#e4e4e7' : '#a1a1aa';
   const mainColor = isHovered ? coloredTone : monoTone;
@@ -564,12 +566,12 @@ function drawBrainAnd3ChEEG(canvas, panelType, phaseState, tick, debounceHits, i
     ctx.globalAlpha = 1;
   }
 
-  ctx.font = '600 9px Montserrat, sans-serif';
+  ctx.font = `600 ${isCompact ? '7.5px' : '9px'} Montserrat, sans-serif`;
   ctx.textAlign = 'center';
   ctx.fillStyle = mainColor;
   ctx.fillText(
-    isSeizing ? (panelType === 'left' ? 'SPREAD: 100% CORTEX' : `DEBOUNCE: ${debounceHits}/5 HITS`) :
-    (isStim ? '⚡ PULSE DELIVERED' : 'NORMAL CORTEX'),
+    isSeizing ? (panelType === 'left' ? (isCompact ? '100% CORTEX' : 'SPREAD: 100% CORTEX') : `HITS: ${debounceHits}/5`) :
+    (isStim ? '⚡ PULSE' : 'NORMAL'),
     bx, h - 16
   );
 
@@ -585,14 +587,14 @@ function drawBrainAnd3ChEEG(canvas, panelType, phaseState, tick, debounceHits, i
     { name: 'T7-P7',  yCenter: h * 0.81, phaseOff: 3.3 }
   ];
 
-  const traceX0 = w * 0.43;
-  const traceW = w * 0.54;
+  const traceX0 = w * (isCompact ? 0.46 : 0.43);
+  const traceW = w - traceX0 - 10;
 
   channels.forEach(ch => {
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.font = '600 9px Montserrat, sans-serif';
+    ctx.font = `600 ${isCompact ? '7.5px' : '9px'} Montserrat, sans-serif`;
     ctx.textAlign = 'left';
-    ctx.fillText(ch.name, divX + 8, ch.yCenter + 3);
+    ctx.fillText(ch.name, divX + 5, ch.yCenter + 3);
 
     ctx.beginPath();
     for (let x = 0; x <= traceW; x += 2) {
@@ -629,10 +631,12 @@ function drawBrainAnd3ChEEG(canvas, panelType, phaseState, tick, debounceHits, i
     ctx.fillRect(traceX0, 10, traceW, 20);
     ctx.strokeRect(traceX0, 10, traceW, 20);
     ctx.fillStyle = mainColor;
-    ctx.font = '700 8.5px Montserrat, sans-serif';
+    ctx.font = `700 ${isCompact ? '7.5px' : '8.5px'} Montserrat, sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillText(
-      isStim ? '⚡ BIPHASIC COUNTER-STIMULATION PULSE ACTIVE' : '✓ SEIZURE SUPPRESSED • NORMAL RHYTHM RESTORED',
+      isStim
+        ? (isCompact ? '⚡ COUNTER-PULSE ACTIVE' : '⚡ BIPHASIC COUNTER-STIMULATION PULSE ACTIVE')
+        : (isCompact ? '✓ SEIZURE SUPPRESSED' : '✓ SEIZURE SUPPRESSED • NORMAL RHYTHM RESTORED'),
       traceX0 + traceW / 2, 23
     );
   }
@@ -643,7 +647,7 @@ function drawShowdownCanvases() {
   const eegRight = document.getElementById('eegRight');
   if (!eegLeft) return;
 
-  const isHov = hoveredCanvases.has('showdown');
+  const isHov = hoveredCanvases.has('showdown') || window.innerWidth <= 900;
   const sL = document.getElementById('sdStatusLeft');
   const sR = document.getElementById('sdStatusRight');
   const steps = ['cls1', 'cls2', 'cls3', 'cls4'].map(id => document.getElementById(id));
@@ -713,54 +717,59 @@ function drawEpicAPipelineCanvas() {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const w = (canvas.width = canvas.clientWidth || 880);
-  const h = (canvas.height = 220);
+  const isStacked = w < 640;
+  const h = (canvas.height = isStacked ? 360 : 220);
   ctx.clearRect(0, 0, w, h);
 
   const isRaw = state.epicaMode === 'raw';
-  const isHov = hoveredCanvases.has('epica');
+  const isHov = hoveredCanvases.has('epica') || window.innerWidth <= 900;
   const mainCol = isHov ? (isRaw ? '#d62976' : '#00e5ff') : '#ffffff';
   const accentCol = isHov ? '#fbbf24' : '#a1a1aa';
 
-  const splitX = w * 0.62;
+  const splitX = isStacked ? w : w * 0.62;
 
   ctx.fillStyle = mainCol;
-  ctx.font = '700 10px Montserrat, sans-serif';
+  ctx.font = `700 ${isStacked ? '8.5px' : '10px'} Montserrat, sans-serif`;
   ctx.textAlign = 'left';
   ctx.fillText(
-    isRaw ? '01 / RAW BOSTON EEG STREAM (WITH 60 Hz POWERLINE HUM)' : '01 / CLEAN 0.5–50 Hz STREAM + 2.0s SLIDING WINDOW (50% OVERLAP)',
-    18, 24
+    isRaw
+      ? (isStacked ? '01 / RAW EEG STREAM (WITH 60 Hz HUM)' : '01 / RAW BOSTON EEG STREAM (WITH 60 Hz POWERLINE HUM)')
+      : (isStacked ? '01 / CLEAN 0.5–50 Hz STREAM + 2.0s WINDOW' : '01 / CLEAN 0.5–50 Hz STREAM + 2.0s SLIDING WINDOW (50% OVERLAP)'),
+    16, 22
   );
 
-  const winW = 125;
-  const streamW = splitX - 36;
-  const winX = 18 + ((state.tick * 1.1) % (streamW - winW));
-  const prevWinX = Math.max(18, winX - winW * 0.5);
+  const winW = isStacked ? Math.min(110, w * 0.36) : 125;
+  const streamW = Math.max(winW + 10, splitX - 32);
+  const winX = 16 + ((state.tick * 1.1) % (streamW - winW));
+  const prevWinX = Math.max(16, winX - winW * 0.5);
+  const boxH = isStacked ? 124 : 142;
 
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
   ctx.setLineDash([4, 4]);
-  ctx.strokeRect(prevWinX, 40, winW, 142);
+  ctx.strokeRect(prevWinX, 36, winW, boxH);
   ctx.setLineDash([]);
 
   ctx.fillStyle = isHov ? 'rgba(0, 229, 255, 0.08)' : 'rgba(255, 255, 255, 0.04)';
   ctx.strokeStyle = mainCol;
   ctx.lineWidth = 1.4;
-  ctx.fillRect(winX, 40, winW, 142);
-  ctx.strokeRect(winX, 40, winW, 142);
+  ctx.fillRect(winX, 36, winW, boxH);
+  ctx.strokeRect(winX, 36, winW, boxH);
 
   ctx.fillStyle = mainCol;
-  ctx.font = '700 8.5px Montserrat, sans-serif';
+  ctx.font = '700 8px Montserrat, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('2.0s WINDOW (512 SAMPLES)', winX + winW / 2, 54);
+  ctx.fillText('2.0s WINDOW', winX + winW / 2, 50);
   ctx.fillStyle = accentCol;
-  ctx.fillText('50% OVERLAP → 154 FEATURES', winX + winW / 2, 174);
+  ctx.fillText('154 FEATURES', winX + winW / 2, 36 + boxH - 8);
 
+  const waveMidY = 36 + boxH / 2;
   ctx.beginPath();
-  for (let x = 18; x < splitX - 18; x += 2) {
+  for (let x = 16; x < splitX - 16; x += 2) {
     const t = (x + state.tick * 2.2) * 0.045;
-    let dy = Math.sin(t * 1.3) * 17 + Math.cos(t * 2.8) * 9 + Math.sin(t * 5.2) * 5;
-    if (isRaw) dy += Math.sin(x * 1.8 + state.tick * 0.9) * 20;
-    const py = 112 + dy;
-    if (x === 18) ctx.moveTo(x, py);
+    let dy = Math.sin(t * 1.3) * 15 + Math.cos(t * 2.8) * 8 + Math.sin(t * 5.2) * 4;
+    if (isRaw) dy += Math.sin(x * 1.8 + state.tick * 0.9) * 18;
+    const py = waveMidY + dy;
+    if (x === 16) ctx.moveTo(x, py);
     else ctx.lineTo(x, py);
   }
   ctx.strokeStyle = mainCol;
@@ -768,34 +777,39 @@ function drawEpicAPipelineCanvas() {
   ctx.stroke();
 
   ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-  ctx.beginPath(); ctx.moveTo(splitX, 14); ctx.lineTo(splitX, h - 14); ctx.stroke();
+  if (isStacked) {
+    ctx.beginPath(); ctx.moveTo(16, 176); ctx.lineTo(w - 16, 176); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(splitX, 14); ctx.lineTo(splitX, h - 14); ctx.stroke();
+  }
 
-  const psdX = splitX + 22;
-  const psdW = w - psdX - 22;
-  const psdBaseY = h - 32;
+  const psdX = isStacked ? 16 : splitX + 22;
+  const psdW = w - psdX - (isStacked ? 16 : 22);
+  const psdTopY = isStacked ? 210 : 40;
+  const psdBaseY = h - 24;
 
   ctx.fillStyle = accentCol;
-  ctx.font = '700 10px Montserrat, sans-serif';
+  ctx.font = `700 ${isStacked ? '8.5px' : '10px'} Montserrat, sans-serif`;
   ctx.textAlign = 'left';
-  ctx.fillText('02 / POWER SPECTRUM (0–75 Hz)', psdX, 24);
+  ctx.fillText('02 / POWER SPECTRUM (0–75 Hz)', psdX, isStacked ? 196 : 24);
 
   const cutoff50X = psdX + psdW * (50 / 75);
   const spike60X = psdX + psdW * (60 / 75);
 
   ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
-  ctx.fillRect(psdX, 40, cutoff50X - psdX, psdBaseY - 40);
+  ctx.fillRect(psdX, psdTopY, cutoff50X - psdX, psdBaseY - psdTopY);
 
   ctx.strokeStyle = mainCol;
   ctx.setLineDash([4, 4]);
-  ctx.beginPath(); ctx.moveTo(cutoff50X, 40); ctx.lineTo(cutoff50X, psdBaseY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cutoff50X, psdTopY); ctx.lineTo(cutoff50X, psdBaseY); ctx.stroke();
   ctx.setLineDash([]);
 
   ctx.beginPath();
   for (let x = 0; x <= psdW; x += 2) {
     const freq = (x / psdW) * 75;
-    let power = Math.exp(-freq / 24) * 90 + Math.sin(freq * 0.4 + state.tick * 0.08) * 3;
+    let power = Math.exp(-freq / 24) * 78 + Math.sin(freq * 0.4 + state.tick * 0.08) * 3;
     if (freq > 50 && !isRaw) power *= Math.exp(-(freq - 50) * 0.35);
-    if (Math.abs(freq - 60) < 2.5) power += isRaw ? 110 : 3;
+    if (Math.abs(freq - 60) < 2.5) power += isRaw ? 95 : 3;
     const px = psdX + x;
     const py = psdBaseY - Math.max(2, power);
     if (x === 0) ctx.moveTo(px, py);
@@ -806,9 +820,9 @@ function drawEpicAPipelineCanvas() {
   ctx.stroke();
 
   ctx.fillStyle = mainCol;
-  ctx.font = '700 8.5px Montserrat, sans-serif';
+  ctx.font = '700 8px Montserrat, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(isRaw ? '⚡ 60 Hz MAINS HUM!' : '✓ 60 Hz ATTENUATED (NO NOTCH)', spike60X, isRaw ? 54 : psdBaseY - 16);
+  ctx.fillText(isRaw ? '⚡ 60 Hz HUM!' : '✓ 60 Hz REMOVED', spike60X - 10, isRaw ? psdTopY + 14 : psdBaseY - 14);
 }
 
 // ============================================================================
@@ -830,47 +844,60 @@ function drawSnnFlow() {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const w = (canvas.width = canvas.clientWidth || 920);
-  const h = (canvas.height = 330);
+  const isGrid2x2 = w < 700;
+  const h = (canvas.height = isGrid2x2 ? 540 : 330);
   ctx.clearRect(0, 0, w, h);
 
   const isSeizure = snnMode === 'seizure';
-  const isHov = hoveredCanvases.has('snn');
+  const isHov = hoveredCanvases.has('snn') || window.innerWidth <= 900;
 
   const cCyan = isHov ? '#00e5ff' : '#ffffff';
   const cGold = isHov ? '#fbbf24' : '#d4d4d8';
   const cViol = isHov ? '#7b5cff' : '#a1a1aa';
   const cMag  = isHov ? '#d62976' : '#ffffff';
 
-  const z1W = w * 0.21, z2W = w * 0.21, z3W = w * 0.34, z4W = w * 0.24;
-  const x1 = 0, x2 = z1W, x3 = z1W + z2W, x4 = z1W + z2W + z3W;
+  const z1W = isGrid2x2 ? w * 0.5 : w * 0.21;
+  const z2W = isGrid2x2 ? w * 0.5 : w * 0.21;
+  const z3W = isGrid2x2 ? w * 0.5 : w * 0.34;
+  const z4W = isGrid2x2 ? w * 0.5 : w * 0.24;
+
+  const x1 = 0, y1 = 0;
+  const x2 = z1W, y2 = 0;
+  const x3 = isGrid2x2 ? 0 : z1W + z2W, y3 = isGrid2x2 ? 270 : 0;
+  const x4 = isGrid2x2 ? w * 0.5 : z1W + z2W + z3W, y4 = isGrid2x2 ? 270 : 0;
 
   ctx.strokeStyle = 'rgba(255,255,255,0.08)';
   ctx.lineWidth = 1;
-  [x2, x3, x4].forEach(divX => {
-    ctx.beginPath(); ctx.moveTo(divX, 12); ctx.lineTo(divX, h - 12); ctx.stroke();
-  });
+  if (isGrid2x2) {
+    ctx.beginPath(); ctx.moveTo(w * 0.5, 10); ctx.lineTo(w * 0.5, h - 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(10, 268); ctx.lineTo(w - 10, 268); ctx.stroke();
+  } else {
+    [x2, x3, x4].forEach(divX => {
+      ctx.beginPath(); ctx.moveTo(divX, 12); ctx.lineTo(divX, h - 12); ctx.stroke();
+    });
+  }
 
-  ctx.font = '700 9.5px Montserrat, sans-serif';
+  ctx.font = `700 ${isGrid2x2 ? '8px' : '9.5px'} Montserrat, sans-serif`;
   ctx.textAlign = 'left';
-  ctx.fillStyle = cCyan; ctx.fillText('01 / 154 EEG FEATURES', x1 + 14, 24);
-  ctx.fillStyle = cGold; ctx.fillText('02 / RATE SPIKE ENCODER (T=25)', x2 + 14, 24);
-  ctx.fillStyle = cViol; ctx.fillText('03 / LIF NEURONS & MEMBRANE V(t)', x3 + 14, 24);
-  ctx.fillStyle = cMag;  ctx.fillText('04 / SPIKE-COUNT DECISION', x4 + 14, 24);
+  ctx.fillStyle = cCyan; ctx.fillText(isGrid2x2 ? '01 / 154 FEATURES' : '01 / 154 EEG FEATURES', x1 + 10, y1 + 22);
+  ctx.fillStyle = cGold; ctx.fillText(isGrid2x2 ? '02 / SPIKE ENCODER' : '02 / RATE SPIKE ENCODER (T=25)', x2 + 10, y2 + 22);
+  ctx.fillStyle = cViol; ctx.fillText(isGrid2x2 ? '03 / LIF NEURONS V(t)' : '03 / LIF NEURONS & MEMBRANE V(t)', x3 + 10, y3 + 22);
+  ctx.fillStyle = cMag;  ctx.fillText(isGrid2x2 ? '04 / DECISION' : '04 / SPIKE-COUNT DECISION', x4 + 10, y4 + 22);
 
   // Stage 1: 7 Feature Bars
-  const featNames = ['Delta', 'Theta', 'Alpha', 'Beta', 'Gamma', 'LineLen', 'Variance'];
+  const featNames = ['Delta', 'Theta', 'Alpha', 'Beta', 'Gamma', 'LineLen', 'Var'];
   const baseVals = isSeizure
     ? [0.75, 0.82, 0.68, 0.92, 0.86, 0.95, 0.90]
     : [0.42, 0.35, 0.55, 0.22, 0.14, 0.18, 0.15];
 
-  const barStartX = x1 + 64, barMaxW = z1W - 80;
+  const barStartX = x1 + (isGrid2x2 ? 50 : 64), barMaxW = Math.max(30, z1W - (isGrid2x2 ? 62 : 80));
   featNames.forEach((fname, idx) => {
-    const fy = 52 + idx * 35;
+    const fy = y1 + (isGrid2x2 ? 42 + idx * 30 : 52 + idx * 35);
     const val = Math.min(1, Math.max(0.08, baseVals[idx] + Math.sin(state.tick * 0.08 + idx) * 0.05));
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.font = '600 9px Inter, sans-serif';
+    ctx.font = `600 ${isGrid2x2 ? '8px' : '9px'} Inter, sans-serif`;
     ctx.textAlign = 'right';
-    ctx.fillText(fname, barStartX - 8, fy + 9);
+    ctx.fillText(fname, barStartX - 6, fy + 9);
     ctx.fillStyle = 'rgba(255,255,255,0.07)';
     ctx.fillRect(barStartX, fy, barMaxW, 10);
     ctx.fillStyle = isSeizure && idx >= 3 ? cMag : cCyan;
@@ -878,9 +905,9 @@ function drawSnnFlow() {
   });
 
   // Stage 2: Spike Raster
-  const rasterX = x2 + 14, rasterW = z2W - 28, rows = 9, cols = 16, cellW = rasterW / cols;
+  const rasterX = x2 + 12, rasterW = z2W - 24, rows = 8, cols = isGrid2x2 ? 12 : 16, cellW = rasterW / cols;
   for (let r = 0; r < rows; r++) {
-    const ry = 50 + r * 26;
+    const ry = y2 + 44 + r * 26;
     for (let c = 0; c < cols; c++) {
       const seed = Math.abs(Math.sin((r + 1) * 19.7 + (c + Math.floor(state.tick * 0.25)) * 7.3));
       if (seed < (isSeizure ? 0.68 : 0.16)) {
@@ -894,11 +921,11 @@ function drawSnnFlow() {
 
   // Stage 3: LIF Network + Scope
   const netColumns = [
-    { x: x3 + z3W * 0.16, count: 6, color: cCyan },
-    { x: x3 + z3W * 0.50, count: 5, color: cViol },
-    { x: x3 + z3W * 0.84, count: 4, color: cMag }
+    { x: x3 + z3W * 0.18, count: 5, color: cCyan },
+    { x: x3 + z3W * 0.50, count: 4, color: cViol },
+    { x: x3 + z3W * 0.82, count: 3, color: cMag }
   ];
-  const netTop = 42, netBottom = 180, netH = netBottom - netTop;
+  const netTop = y3 + 36, netBottom = y3 + (isGrid2x2 ? 150 : 180), netH = netBottom - netTop;
   const colNodes = netColumns.map(col => {
     const arr = [];
     for (let i = 0; i < col.count; i++) {
@@ -930,7 +957,7 @@ function drawSnnFlow() {
     if (p.t >= 1) { snnPulses.splice(i, 1); continue; }
     ctx.fillStyle = isSeizure ? cGold : cCyan;
     ctx.beginPath();
-    ctx.arc(p.x1 + (p.x2 - p.x1) * p.t, p.y1 + (p.y2 - p.y1) * p.t, 2.8, 0, Math.PI * 2);
+    ctx.arc(p.x1 + (p.x2 - p.x1) * p.t, p.y1 + (p.y2 - p.y1) * p.t, 2.5, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -939,12 +966,12 @@ function drawSnnFlow() {
       ctx.fillStyle = '#060608';
       ctx.strokeStyle = n.color;
       ctx.lineWidth = 1.6;
-      ctx.beginPath(); ctx.arc(n.x, n.y, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(n.x, n.y, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     });
   });
 
   // Scope
-  const scopeX = x3 + 14, scopeY = 196, scopeW = z3W - 28, scopeH = 104;
+  const scopeX = x3 + 10, scopeY = y3 + (isGrid2x2 ? 160 : 196), scopeW = z3W - 20, scopeH = isGrid2x2 ? 92 : 104;
   ctx.fillStyle = '#09090d';
   ctx.strokeStyle = 'rgba(255,255,255,0.12)';
   ctx.fillRect(scopeX, scopeY, scopeW, scopeH);
@@ -965,9 +992,9 @@ function drawSnnFlow() {
   ctx.setLineDash([]);
 
   ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  ctx.font = '600 8px Montserrat, sans-serif';
+  ctx.font = '600 7.5px Montserrat, sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText('LIF MEMBRANE V(t) [β=0.9]', scopeX + 8, scopeY + 13);
+  ctx.fillText('LIF V(t) [β=0.9]', scopeX + 6, scopeY + 13);
 
   ctx.beginPath();
   lifVoltageHistory.forEach((v, idx) => {
@@ -981,24 +1008,24 @@ function drawSnnFlow() {
   ctx.stroke();
 
   // Stage 4: Readout
-  const rPadX = x4 + 16, rW = z4W - 32;
+  const rPadX = x4 + 12, rW = z4W - 24;
   const c0Spikes = isSeizure ? 4 : 21;
   const c1Spikes = isSeizure ? 20 : 2;
 
   ctx.fillStyle = 'rgba(255,255,255,0.75)';
-  ctx.font = '600 9.5px Montserrat, sans-serif';
-  ctx.textAlign = 'left'; ctx.fillText('CLASS 0 (NORMAL)', rPadX, 64);
-  ctx.textAlign = 'right'; ctx.fillStyle = cCyan; ctx.fillText(`${c0Spikes}/25`, rPadX + rW, 64);
-  ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(rPadX, 72, rW, 12);
-  ctx.fillStyle = cCyan; ctx.fillRect(rPadX, 72, rW * (c0Spikes / 25), 12);
+  ctx.font = `600 ${isGrid2x2 ? '8px' : '9.5px'} Montserrat, sans-serif`;
+  ctx.textAlign = 'left'; ctx.fillText(isGrid2x2 ? 'NORMAL (0)' : 'CLASS 0 (NORMAL)', rPadX, y4 + 58);
+  ctx.textAlign = 'right'; ctx.fillStyle = cCyan; ctx.fillText(`${c0Spikes}/25`, rPadX + rW, y4 + 58);
+  ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(rPadX, y4 + 66, rW, 11);
+  ctx.fillStyle = cCyan; ctx.fillRect(rPadX, y4 + 66, rW * (c0Spikes / 25), 11);
 
   ctx.fillStyle = 'rgba(255,255,255,0.75)';
-  ctx.textAlign = 'left'; ctx.fillText('CLASS 1 (SEIZURE)', rPadX, 120);
-  ctx.textAlign = 'right'; ctx.fillStyle = cMag; ctx.fillText(`${c1Spikes}/25`, rPadX + rW, 120);
-  ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(rPadX, 128, rW, 12);
-  ctx.fillStyle = cMag; ctx.fillRect(rPadX, 128, rW * (c1Spikes / 25), 12);
+  ctx.textAlign = 'left'; ctx.fillText(isGrid2x2 ? 'SEIZURE (1)' : 'CLASS 1 (SEIZURE)', rPadX, y4 + 110);
+  ctx.textAlign = 'right'; ctx.fillStyle = cMag; ctx.fillText(`${c1Spikes}/25`, rPadX + rW, y4 + 110);
+  ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(rPadX, y4 + 118, rW, 11);
+  ctx.fillStyle = cMag; ctx.fillRect(rPadX, y4 + 118, rW * (c1Spikes / 25), 11);
 
-  const cardY = 172, cardH = 128;
+  const cardY = y4 + 154, cardH = isGrid2x2 ? 98 : 128;
   ctx.fillStyle = 'rgba(255,255,255,0.03)';
   ctx.strokeStyle = isSeizure ? cMag : cCyan;
   ctx.lineWidth = 1.4;
@@ -1007,11 +1034,11 @@ function drawSnnFlow() {
 
   ctx.textAlign = 'center';
   ctx.fillStyle = isSeizure ? cMag : cCyan;
-  ctx.font = '700 14px Montserrat, sans-serif';
-  ctx.fillText(isSeizure ? 'SEIZURE (CLASS 1)' : 'NORMAL (CLASS 0)', rPadX + rW / 2, cardY + 52);
+  ctx.font = `700 ${isGrid2x2 ? '11px' : '14px'} Montserrat, sans-serif`;
+  ctx.fillText(isSeizure ? 'SEIZURE (1)' : 'NORMAL (0)', rPadX + rW / 2, cardY + (isGrid2x2 ? 42 : 52));
   ctx.fillStyle = 'rgba(255,255,255,0.65)';
-  ctx.font = '500 9.5px Inter, sans-serif';
-  ctx.fillText(isSeizure ? '+1 Hit → 5s Debouncer' : 'Standby • 0.61 ms', rPadX + rW / 2, cardY + 80);
+  ctx.font = `500 ${isGrid2x2 ? '8.5px' : '9.5px'} Inter, sans-serif`;
+  ctx.fillText(isSeizure ? '+1 Hit → Debouncer' : 'Standby • 0.61 ms', rPadX + rW / 2, cardY + (isGrid2x2 ? 66 : 80));
 }
 
 // ============================================================================
@@ -1072,9 +1099,10 @@ function drawLiveSimCanvas() {
   const ctx = canvas.getContext('2d');
   const w = (canvas.width = canvas.clientWidth || 540);
   const h = (canvas.height = 230);
+  const isCompact = w < 520;
   ctx.clearRect(0, 0, w, h);
 
-  const isHov = hoveredCanvases.has('sim');
+  const isHov = hoveredCanvases.has('sim') || window.innerWidth <= 900;
   const isSeiz = state.simMode === 'seizure';
   const isHum = state.simMode === 'hum';
 
@@ -1083,9 +1111,9 @@ function drawLiveSimCanvas() {
 
   // Top Header: Analog Brainwave
   ctx.fillStyle = waveCol;
-  ctx.font = '700 9.5px Montserrat, sans-serif';
+  ctx.font = `700 ${isCompact ? '8px' : '9.5px'} Montserrat, sans-serif`;
   ctx.textAlign = 'left';
-  ctx.fillText('① CONTINUOUS ANALOG BRAINWAVE (EEG SIGNAL)', 14, 20);
+  ctx.fillText(isCompact ? '① ANALOG BRAINWAVE (EEG)' : '① CONTINUOUS ANALOG BRAINWAVE (EEG SIGNAL)', 14, 20);
 
   // Draw Analog EEG Waveform
   ctx.beginPath();
@@ -1122,7 +1150,7 @@ function drawLiveSimCanvas() {
 
     // Slot base tick
     ctx.fillStyle = 'rgba(255,255,255,0.12)';
-    ctx.fillRect(sx - 3, 194, 6, 2);
+    ctx.fillRect(sx - 2, 194, 4, 2);
 
     if (isOne) {
       // Faint conversion drop line from wave to spike
@@ -1132,18 +1160,18 @@ function drawLiveSimCanvas() {
 
       // Digital Spike Bar (1)
       ctx.strokeStyle = spikeCol;
-      ctx.lineWidth = 2.6;
+      ctx.lineWidth = isCompact ? 2.0 : 2.6;
       ctx.beginPath(); ctx.moveTo(sx, 194); ctx.lineTo(sx, 148); ctx.stroke();
 
       // Binary '1' label above spike
       ctx.fillStyle = spikeCol;
-      ctx.font = '700 8.5px Montserrat, sans-serif';
+      ctx.font = `700 ${isCompact ? '7.5px' : '8.5px'} Montserrat, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillText('1', sx, 143);
     } else {
       // Binary '0' label on baseline
       ctx.fillStyle = 'rgba(255,255,255,0.25)';
-      ctx.font = '500 8px Montserrat, sans-serif';
+      ctx.font = `500 ${isCompact ? '7px' : '8px'} Montserrat, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillText('0', sx, 190);
     }
@@ -1151,19 +1179,19 @@ function drawLiveSimCanvas() {
     // Step index at bottom (1..25)
     if ((s + 1) % 5 === 0 || s === 0) {
       ctx.fillStyle = 'rgba(255,255,255,0.38)';
-      ctx.font = '500 8px Inter, sans-serif';
+      ctx.font = '500 7.5px Inter, sans-serif';
       ctx.fillText(`T=${s + 1}`, sx, 214);
     }
   }
 
   // Bottom Track Header + Live Spike Count Badge
   ctx.fillStyle = spikeCol;
-  ctx.font = '700 9.5px Montserrat, sans-serif';
+  ctx.font = `700 ${isCompact ? '8px' : '9.5px'} Montserrat, sans-serif`;
   ctx.textAlign = 'left';
-  ctx.fillText('② ENCODED DIGITAL SPIKES (25 STEPS OF 0 & 1)', 14, 130);
+  ctx.fillText(isCompact ? '② DIGITAL SPIKES (0 & 1)' : '② ENCODED DIGITAL SPIKES (25 STEPS OF 0 & 1)', 14, 130);
 
   ctx.textAlign = 'right';
-  ctx.fillText(`SPIKES FIRED: ${activeSpikes} / 25`, w - 14, 130);
+  ctx.fillText(isCompact ? `FIRED: ${activeSpikes}/25` : `SPIKES FIRED: ${activeSpikes} / 25`, w - 14, 130);
 }
 
 function runDebounceTest(type) {
@@ -1305,7 +1333,7 @@ function drawElectrodeCanvas() {
   const w = c.width, h = c.height, cx = w / 2, cy = h / 2 + 10, rH = Math.min(w, h) * 0.42;
   ctx.clearRect(0, 0, w, h);
 
-  const isHov = hoveredCanvases.has('elec');
+  const isHov = hoveredCanvases.has('elec') || window.innerWidth <= 900;
 
   ctx.strokeStyle = 'rgba(255,255,255,0.28)';
   ctx.lineWidth = 1.4;
@@ -1381,13 +1409,15 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Support mobile touch swipe across the brain matrix
-  window.addEventListener('touchmove', e => {
+  // Support mobile touch tap & swipe across the brain matrix
+  const onTouch = e => {
     if (!e.touches || !e.touches[0]) return;
     state.mouseX = e.touches[0].clientX;
     state.mouseY = e.touches[0].clientY;
     if (state.inWelcome) checkNodeHover(state.mouseX, state.mouseY);
-  }, { passive: true });
+  };
+  window.addEventListener('touchstart', onTouch, { passive: true });
+  window.addEventListener('touchmove', onTouch, { passive: true });
 
   // Clicking any of the 6 Brain Callout Pills jumps straight to its Dashboard Tab
   document.getElementById('welcomeScreen')?.addEventListener('click', e => {
@@ -1409,7 +1439,7 @@ window.addEventListener('DOMContentLoaded', () => {
   bindHover('#tab-story .showdown-block', 'showdown');
   bindHover('#tab-epica .showdown-block', 'epica');
   bindHover('#tab-epicb .snn-flow-block', 'snn');
-  bindHover('#tab-sim .hairline-grid-2', 'sim');
+  bindHover('#tab-sim .sim-vertical-stack', 'sim');
   bindHover('#tab-sim .electrode-lab-block', 'elec');
 
   runDebounceTest('seizure');
@@ -1435,4 +1465,5 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   requestAnimationFrame(animate);
 });
+
 
